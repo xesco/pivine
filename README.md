@@ -16,7 +16,7 @@
 - glibc `2.35` or newer
 - `2.36+` recommended
 - root access via `sudo`
-- Chromium snap must not be installed
+- conflicting Chromium installs must be removed first
 - internet access for Chromium packages and the LaCrOS image download
 
 ## Supported Ubuntu versions
@@ -39,6 +39,18 @@ Verbose mode:
 
 ```sh
 sudo ./install.sh -v
+```
+
+If Ubuntu's Chromium is already installed, remove it first and then rerun the installer:
+
+```sh
+sudo snap remove chromium
+```
+
+or, for a `.deb` install:
+
+```sh
+sudo apt remove chromium chromium-common
 ```
 
 The installer saves the pre-install state it may replace under `/var/lib/pivine-state` by default so `uninstall.sh` can restore it later.

@@ -84,14 +84,22 @@ EOF
 
     cat > "$MOCK_BIN/dpkg-query" <<SH
 #!/bin/sh
-pkg="\$3"
+pkg=""
+format=""
+for arg in "\$@"; do
+    case "\$arg" in
+        -f=*) format="\$arg" ;;
+        -W) ;;
+        *) pkg="\$arg" ;;
+    esac
+done
 status=0
 while IFS='=' read -r name val; do
     [ "\$name" = "\$pkg" ] && status="\$val"
 done < "$DPkg_STATE"
 if [ "\$status" = "1" ]; then
-    if [ "\$2" = '-f=
-\${Status}' ]; then
+    if [ "\$format" = '-f=
+\${Status}' ] || [ "\$format" = '-f=${Status}' ]; then
         printf 'install ok installed'
     else
         printf '1.0'
@@ -235,6 +243,28 @@ SH
     run sh "$INSTALL_SH"
     [ "$status" -ne 0 ]
     [[ "$output" == *"snap remove chromium"* ]]
+}
+
+@test "fails with non-zero exit if Chromium deb packages are already installed" {
+    mkdir -p "$MOCK_BIN"
+    cat > "$MOCK_BIN/dpkg-query" <<'SH'
+#!/bin/sh
+pkg=""
+for arg in "$@"; do
+    pkg="$arg"
+done
+if [ "$pkg" = "chromium" ] || [ "$pkg" = "chromium-common" ]; then
+    printf 'install ok installed'
+    exit 0
+fi
+exit 1
+SH
+    chmod +x "$MOCK_BIN/dpkg-query"
+
+    run sh "$INSTALL_SH"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"sudo apt remove chromium chromium-common"* ]]
+    [ ! -e "$PIVINE_STATE_DIR" ]
 }
 
 @test "WidevineCdm symlink points to /usr/lib/chromium, not /usr/lib64 or chromium-browser" {

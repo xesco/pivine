@@ -164,6 +164,17 @@ if snap list chromium >/dev/null 2>&1; then
     exit 1
 fi
 
+if package_installed chromium || package_installed chromium-common; then
+    if [ "$(get_meta install_complete)" != "1" ] || \
+       [ "$(get_meta pkg_chromium_installed)" != "0" ] || \
+       [ "$(get_meta pkg_chromium_common_installed)" != "0" ]; then
+        echo "ERROR: Chromium packages are already installed and may conflict"
+        echo "       with the RPi Foundation Chromium .deb."
+        echo "       Remove them first:  sudo apt remove chromium chromium-common"
+        exit 1
+    fi
+fi
+
 mkdir -p "$PIVINE_STATE_DIR" "$STATE_META_DIR" "$STATE_BACKUP_DIR"
 set_meta install_in_progress 1
 
@@ -172,12 +183,6 @@ capture_original_state
 # ------------------------------------------------------------------ #
 # Install base dependencies
 # ------------------------------------------------------------------ #
-
-# A previous run may have left chromium in a force-depends-installed state
-# with unsatisfiable Debian-specific deps (libjpeg62-turbo, zenoty).
-# apt-get refuses to install anything when broken packages are present,
-# so remove them first. The original package state is restored by uninstall.sh.
-Q dpkg --remove --force-depends chromium chromium-common 2>/dev/null || true
 
 echo "Installing dependencies..."
 Q apt-get install -y --no-install-recommends \
