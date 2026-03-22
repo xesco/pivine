@@ -143,3 +143,13 @@ The patcher is a single Python 3 script with no external Python dependencies.
 - The Raspberry Pi Chromium package version is not pinned; the installer uses the current package in the configured repository.
 - `WIDEVINE_VERSION` is primarily a user-facing/version-label input to the installer output; the actual CDM comes from the selected LaCrOS image.
 - This project is still under development and is meant as a focused utility, not a general-purpose packaging system.
+
+## License
+
+This project is licensed under the MIT License. See `LICENSE`.
+
+## Disclaimer
+
+This project is provided as-is, without warranty of any kind.
+
+You are responsible for how you use it. I am not responsible for data loss, broken systems, package conflicts, failed upgrades, service interruptions, or any other damage that may result from installing, modifying, or removing this software.
