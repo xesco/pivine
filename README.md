@@ -14,11 +14,11 @@ On Ubuntu for Raspberry Pi, watching Netflix and similar services in Chromium do
 
 The main blockers are:
 
-- the standard Ubuntu Chromium snap does not provide working DRM playback for this use case
+- the standard Ubuntu Chromium snap does not provide working DRM playback
 - Google's publicly available aarch64 Widevine binary is distributed as part of ChromeOS LaCrOS, not as a normal Ubuntu/Linux package
 - that ChromeOS CDM is not directly loadable on a standard Ubuntu system without patching
 
-This project is a practical installer for that specific gap: Raspberry Pi, Ubuntu aarch64, Chromium, Widevine, and hardware-decoded playback.
+This project fills that gap for Raspberry Pi, Ubuntu aarch64, Chromium, Widevine, and hardware-decoded playback.
 
 ## What the installer changes
 
@@ -29,7 +29,7 @@ This project is a practical installer for that specific gap: Raspberry Pi, Ubunt
 3. Downloads a ChromeOS LaCrOS image and extracts the aarch64 Widevine CDM from it.
 4. Patches `libwidevinecdm.so` so it can load on Ubuntu, then wires Chromium to use it.
 
-It also writes a Chromium customization file under `/etc/chromium/customizations` to enable the intended GPU/video flags and user agent, and saves the current local system state so `uninstall.sh` can restore it later.
+It also writes a Chromium customization file under `/etc/chromium/customizations` to set the required GPU/video flags and user agent, and saves the current local system state so `uninstall.sh` can restore it later.
 
 ## Requirements
 
@@ -48,7 +48,7 @@ It also writes a Chromium customization file under `/etc/chromium/customizations
 - Recommended: Ubuntu 23.04 or newer
 - Older releases are not supported
 
-The real requirement here is glibc compatibility, not Ubuntu version by itself. The installer uses glibc as the practical gate: it requires glibc `2.35` or newer, and treats glibc `2.36+` as the recommended target. The Ubuntu version guidance above is just a shorthand for that requirement.
+The real requirement is glibc compatibility, not Ubuntu version by itself. The installer uses glibc as the runtime gate: it requires glibc `2.35` or newer, and treats glibc `2.36+` as the recommended target. The Ubuntu version guidance above is shorthand for that requirement.
 
 ## Install
 
@@ -91,7 +91,7 @@ After installation:
 - check `chrome://gpu` and confirm Video Decode is hardware accelerated
 - use `chrome://media-internals` if you want playback diagnostics
 
-Note: the Widevine CDM here is sideloaded. It is usable for playback, but it will not behave exactly like a stock desktop Chrome installation.
+Note: the Widevine CDM here is sideloaded. Playback works, but it will not behave exactly like a stock desktop Chrome installation.
 
 ## Version overrides
 
@@ -139,10 +139,10 @@ The patcher is a single Python 3 script with no external Python dependencies.
 ## Notes
 
 - This project is intentionally `aarch64`-only.
-- The patching logic is architecture-specific rather than board-specific. Pi 4 is the main target, Pi 5 should also be viable, and Pi 3 is not a documented target.
+- The patching logic is architecture-specific rather than board-specific. Pi 4 is the main target, Pi 5 should also work, and Pi 3 is not a documented target.
 - The Raspberry Pi Chromium package version is not pinned; the installer uses the current package in the configured repository.
 - `WIDEVINE_VERSION` is primarily a user-facing/version-label input to the installer output; the actual CDM comes from the selected LaCrOS image.
-- This project is still under development and is meant as a focused utility, not a general-purpose packaging system.
+- This project is still under development. It is a focused utility, not a general-purpose packaging system.
 
 ## License
 
