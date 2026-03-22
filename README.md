@@ -1,10 +1,10 @@
 # pivine
 
-`pivine` installs a Chromium + Widevine setup that allows a Raspberry Pi running Ubuntu aarch64 to play Widevine-protected streaming content such as Netflix and Amazon Prime Video.
+`pivine` installs a Chromium + Widevine setup for Raspberry Pi on Ubuntu aarch64 so Chromium can play Widevine-protected streaming content such as Netflix and Amazon Prime Video.
 
 ## What it does
 
-`pivine` combines three things that are not available together in the default Ubuntu setup:
+`pivine` combines three pieces that are not available together in the default Ubuntu setup:
 
 - a Chromium build for Raspberry Pi with working V4L2 hardware video decode
 - an aarch64 Widevine CDM extracted from ChromeOS LaCrOS
@@ -21,13 +21,11 @@
 
 ## Supported Ubuntu versions
 
-`pivine` targets Ubuntu on `aarch64`.
-
 - Minimum: Ubuntu 22.04
 - Recommended: Ubuntu 23.04 or newer
 - Older releases are not supported
 
-The real requirement is glibc compatibility, not Ubuntu version by itself. The installer uses glibc as the runtime gate: it requires glibc `2.35` or newer, and treats glibc `2.36+` as the recommended target. The Ubuntu version guidance above is shorthand for that requirement.
+The real requirement is glibc compatibility. The installer requires glibc `2.35` or newer and recommends `2.36+`; the Ubuntu version guidance above is shorthand for that.
 
 ## Install
 
@@ -43,22 +41,20 @@ Verbose mode:
 sudo ./install.sh -v
 ```
 
-The installer captures the pre-install state it may replace and stores it under `/var/lib/pivine-state` by default. That state is used by `uninstall.sh` to restore the prior setup.
+The installer saves the pre-install state it may replace under `/var/lib/pivine-state` by default so `uninstall.sh` can restore it later.
 
 ## What the installer changes
 
-`install.sh` does four main things:
+`install.sh` does four things:
 
 1. Installs the Raspberry Pi Foundation Chromium packages from `archive.raspberrypi.com/debian`.
 2. Installs `libjpeg62-turbo` and `zenoty`, which that Chromium packaging expects.
 3. Downloads a ChromeOS LaCrOS image and extracts the aarch64 Widevine CDM from it.
 4. Patches `libwidevinecdm.so` so it can load on Ubuntu, then wires Chromium to use it.
 
-It also writes a Chromium customization file under `/etc/chromium/customizations` to set the required GPU/video flags and user agent, and saves the current local system state so `uninstall.sh` can restore it later.
+It also writes a Chromium customization file under `/etc/chromium/customizations` with the required GPU/video flags and user agent, and records local state for rollback.
 
 ## Verify playback
-
-After installation:
 
 - open Chromium
 - try a Widevine-protected service such as Netflix or Amazon Prime Video
@@ -81,11 +77,11 @@ Verbose mode:
 sudo ./uninstall.sh -v
 ```
 
-The uninstaller restores the saved pre-install state for the paths and packages it tracks. If the saved state directory is missing, it refuses to guess.
+The uninstaller restores the saved pre-install state for tracked paths and packages. If the state directory is missing, it refuses to guess.
 
 ## Version overrides
 
-These defaults can be overridden with environment variables before install:
+You can override these defaults with environment variables before install:
 
 | Artifact | Default | Variable |
 |---|---|---|
@@ -102,26 +98,22 @@ sudo LACROS_VERSION=120.0.6098.0 WIDEVINE_VERSION=4.10.2662.3 ./install.sh
 
 ## Why this exists
 
-On Ubuntu for Raspberry Pi, watching Netflix and similar services in Chromium does not work out of the box.
-
-The main blockers are:
+On Ubuntu for Raspberry Pi, Netflix and similar services do not work in Chromium out of the box. The main blockers are:
 
 - the standard Ubuntu Chromium snap does not provide working DRM playback
 - Google's publicly available aarch64 Widevine binary is distributed as part of ChromeOS LaCrOS, not as a normal Ubuntu/Linux package
 - that ChromeOS CDM is not directly loadable on a standard Ubuntu system without patching
 
-This project fills that gap for Raspberry Pi, Ubuntu aarch64, Chromium, Widevine, and hardware-decoded playback.
+This project fills that gap for Ubuntu aarch64 on Raspberry Pi.
 
 ## Technical overview
 
-The interesting part of this project is `widevine_patch.py`.
-
-The Widevine binary extracted from LaCrOS is built for ChromeOS rather than ordinary desktop Linux. On Ubuntu aarch64, two load-time issues matter:
+The core of the project is `widevine_patch.py`. The Widevine binary extracted from LaCrOS is built for ChromeOS rather than ordinary desktop Linux, and on Ubuntu aarch64 two load-time issues matter:
 
 - it uses `DT_RELR`, and modern glibc expects a `GLIBC_ABI_DT_RELR` version dependency when that feature is present
 - it references AArch64 atomic helper symbols that are available in the ChromeOS environment but not on a standard Ubuntu system in the way this CDM expects
 
-The patcher edits the ELF directly to address those issues:
+The patcher edits the ELF directly to address them:
 
 - it creates a new dynamic string table and version-needs table containing `GLIBC_ABI_DT_RELR`
 - it injects small AArch64 stubs for the missing atomic helpers
@@ -155,7 +147,7 @@ The patcher is a single Python 3 script with no external Python dependencies.
 
 ## License
 
-This project is licensed under the MIT License. See `LICENSE`.
+This project is licensed under the MIT License. See [LICENSE](LICENSE).
 
 ## Disclaimer
 
