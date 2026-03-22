@@ -40,8 +40,6 @@ CHROMIUM_FLAGS_FILE="$CHROMIUM_FLAGS_DIR/customizations"
 CHROMIUM_BROWSER_LINK="$BINDIR/chromium-browser"
 WIDEVINE_LINK="$CHROME_WIDEVINE_BASE/WidevineCdm"
 
-mkdir -p "$PIVINE_STATE_DIR" "$STATE_META_DIR" "$STATE_BACKUP_DIR"
-
 set_meta() {
     key="$1"
     shift
@@ -123,8 +121,6 @@ capture_original_state() {
     set_meta original_state_captured 1
 }
 
-set_meta install_in_progress 1
-
 # ------------------------------------------------------------------ #
 # Preflight checks
 # ------------------------------------------------------------------ #
@@ -167,6 +163,9 @@ if snap list chromium >/dev/null 2>&1; then
     echo "       Remove it first:  sudo snap remove chromium"
     exit 1
 fi
+
+mkdir -p "$PIVINE_STATE_DIR" "$STATE_META_DIR" "$STATE_BACKUP_DIR"
+set_meta install_in_progress 1
 
 capture_original_state
 

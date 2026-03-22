@@ -43,6 +43,8 @@ sudo ./install.sh -v
 
 The installer saves the pre-install state it may replace under `/var/lib/pivine-state` by default so `uninstall.sh` can restore it later.
 
+Re-running the installer is safe: it reapplies the required setup and keeps the original pre-pivine state needed for uninstall.
+
 ## What the installer changes
 
 `install.sh` does four things:
@@ -77,7 +79,9 @@ Verbose mode:
 sudo ./uninstall.sh -v
 ```
 
-The uninstaller restores the saved pre-install state for tracked paths and packages. If the state directory is missing, it refuses to guess.
+The uninstaller restores the saved pre-install state for tracked paths and packages.
+
+Re-running the uninstaller is also safe. If pivine is already absent, it exits without changing anything.
 
 ## Version overrides
 

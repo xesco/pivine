@@ -92,9 +92,13 @@ if [ "$(whoami)" != "root" ]; then
 fi
 
 if [ ! -d "$PIVINE_STATE_DIR" ]; then
-    echo "ERROR: No pivine state directory found at $PIVINE_STATE_DIR"
-    echo "       Refusing to guess the previous system state."
-    exit 1
+    echo "Nothing to uninstall. No pivine state found at $PIVINE_STATE_DIR."
+    exit 0
+fi
+
+if [ "$(get_meta original_state_captured)" != "1" ]; then
+    echo "Nothing to uninstall. Pivine state at $PIVINE_STATE_DIR is incomplete."
+    exit 0
 fi
 
 # ------------------------------------------------------------------ #

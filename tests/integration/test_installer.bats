@@ -266,6 +266,25 @@ SH
     [ -e "$INSTALL_BASE/WidevineCdm/_platform_specific/linux_x64/libwidevinecdm.so" ]
 }
 
+@test "install twice then uninstall restores prior chromium-browser and chromium customizations" {
+    mkdir -p "$BINDIR" "$DESTDIR/etc/chromium"
+    printf 'original wrapper\n' > "$BINDIR/chromium-browser"
+    printf 'ORIGINAL=1\n' > "$DESTDIR/etc/chromium/customizations"
+
+    run sh "$INSTALL_SH"
+    [ "$status" -eq 0 ]
+
+    run sh "$INSTALL_SH"
+    [ "$status" -eq 0 ]
+
+    run sh "$UNINSTALL_SH"
+    [ "$status" -eq 0 ]
+
+    [ -f "$BINDIR/chromium-browser" ]
+    [ "$(cat "$BINDIR/chromium-browser")" = "original wrapper" ]
+    [ "$(cat "$DESTDIR/etc/chromium/customizations")" = "ORIGINAL=1" ]
+}
+
 @test "chromium-browser symlink points to chromium binary" {
     run sh "$INSTALL_SH"
     [ "$status" -eq 0 ]
@@ -314,6 +333,47 @@ SH
     [ ! -e "$BINDIR/chromium-browser" ]
     [ ! -e "$DESTDIR/etc/chromium/customizations" ]
     [ ! -e "$PIVINE_STATE_DIR" ]
+}
+
+@test "uninstall is idempotent" {
+    run sh "$INSTALL_SH"
+    [ "$status" -eq 0 ]
+
+    run sh "$UNINSTALL_SH"
+    [ "$status" -eq 0 ]
+
+    run sh "$UNINSTALL_SH"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Nothing to uninstall."* ]]
+
+    [ ! -e "$INSTALL_BASE" ]
+    [ ! -e "$CHROME_WIDEVINE_BASE/WidevineCdm" ]
+    [ ! -e "$BINDIR/chromium-browser" ]
+    [ ! -e "$DESTDIR/etc/chromium/customizations" ]
+    [ ! -e "$PIVINE_STATE_DIR" ]
+}
+
+@test "failed preflight install does not make uninstall destructive" {
+    mkdir -p "$BINDIR" "$DESTDIR/etc/chromium"
+    printf 'original wrapper\n' > "$BINDIR/chromium-browser"
+    printf 'ORIGINAL=1\n' > "$DESTDIR/etc/chromium/customizations"
+
+    cat > "$MOCK_BIN/snap" <<'SH'
+#!/bin/sh
+exit 0
+SH
+    chmod +x "$MOCK_BIN/snap"
+
+    run sh "$INSTALL_SH"
+    [ "$status" -ne 0 ]
+
+    run sh "$UNINSTALL_SH"
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Nothing to uninstall."* ]]
+
+    [ -f "$BINDIR/chromium-browser" ]
+    [ "$(cat "$BINDIR/chromium-browser")" = "original wrapper" ]
+    [ "$(cat "$DESTDIR/etc/chromium/customizations")" = "ORIGINAL=1" ]
 }
 
 @test "uninstall removes zenoty if pivine installed it" {
