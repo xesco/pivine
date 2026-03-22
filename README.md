@@ -136,6 +136,13 @@ The patcher is a single Python 3 script with no external Python dependencies.
 - `tests/integration/` - integration tests for installer behavior
 - `tests/e2e/` - real-browser playback smoke tests
 
+## References
+
+- Asahi Linux `widevine-installer`: <https://github.com/AsahiLinux/widevine-installer> - installs Widevine on `aarch64` Linux systems and includes fixup logic so the CDM can load on standard glibc-based distributions.
+- `chromium-wv`: <https://github.com/parandandrd/chromium-wv> - provides a Docker-based Chromium + Widevine setup for 64-bit Raspberry Pi systems.
+- `raspberry-pi-libwidevine`: <https://github.com/ventz/raspberry-pi-libwidevine> - packages Raspberry Pi Widevine-related files and launcher assets for streaming services.
+- `chromium-widevine`: <https://github.com/proprietary/chromium-widevine> - provides scripts for installing Widevine support into Chromium on Debian and Ubuntu systems.
+
 ## Notes
 
 - This project is intentionally `aarch64`-only.
