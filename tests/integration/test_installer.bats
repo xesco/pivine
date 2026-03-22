@@ -20,7 +20,7 @@ setup() {
 
     FAKE_PKGS_DIR="$TMPDIR/rpi-repo"
     mkdir -p "$FAKE_PKGS_DIR"
-    printf 'Package: chromium-common\nFilename: pool/main/c/chromium/chromium-common_146_arm64.deb\n\nPackage: chromium\nFilename: pool/main/c/chromium/chromium_146_arm64.deb\n\nPackage: libjpeg62-turbo\nFilename: pool/main/libj/libjpeg-turbo/libjpeg62-turbo_146_arm64.deb\n' \
+    printf 'Package: chromium-common\nFilename: pool/main/c/chromium/chromium-common_146_arm64.deb\n\nPackage: chromium\nFilename: pool/main/c/chromium/chromium_146_arm64.deb\n\nPackage: libjpeg62-turbo\nFilename: pool/main/libj/libjpeg-turbo/libjpeg62-turbo_146_arm64.deb\n\nPackage: zenoty\nFilename: pool/main/z/zenoty/zenoty_0.3_arm64.deb\n' \
         | gzip > "$FAKE_PKGS_DIR/Packages.gz"
 
     mkdir -p "$FAKE_PKGS_DIR/pool/main/c/chromium"
@@ -28,6 +28,8 @@ setup() {
     touch "$FAKE_PKGS_DIR/pool/main/c/chromium/chromium-common_146_arm64.deb"
     mkdir -p "$FAKE_PKGS_DIR/pool/main/libj/libjpeg-turbo"
     touch "$FAKE_PKGS_DIR/pool/main/libj/libjpeg-turbo/libjpeg62-turbo_146_arm64.deb"
+    mkdir -p "$FAKE_PKGS_DIR/pool/main/z/zenoty"
+    touch "$FAKE_PKGS_DIR/pool/main/z/zenoty/zenoty_0.3_arm64.deb"
 
     FAKE_DESTDIR="$TMPDIR/destdir"
     mkdir -p "$FAKE_DESTDIR"
@@ -77,6 +79,7 @@ chromium=0
 chromium-common=0
 libjpeg62=0
 libjpeg62-turbo=0
+zenoty=0
 EOF
 
     cat > "$MOCK_BIN/dpkg-query" <<SH
@@ -125,12 +128,23 @@ if [ "\$1" = '--remove' ]; then
     exit 0
 fi
 
+if [ "\$1" = '-i' ]; then
+    shift
+    for arg in "\$@"; do
+        case "\$arg" in
+            *zenoty.deb) set_pkg zenoty 1 ;;
+        esac
+    done
+    exit 0
+fi
+
 if [ "\$1" = '--force-depends' ] || [ "\$1" = '--force-overwrite' ]; then
     for arg in "\$@"; do
         case "\$arg" in
             *chromium-common.deb) set_pkg chromium-common 1 ;;
             *chromium.deb) set_pkg chromium 1 ; mkdir -p "$FAKE_DESTDIR/usr/bin"; touch "$FAKE_DESTDIR/usr/bin/chromium"; chmod +x "$FAKE_DESTDIR/usr/bin/chromium" ;;
             *libjpeg62-turbo.deb) set_pkg libjpeg62-turbo 1 ;;
+            *zenoty.deb) set_pkg zenoty 1 ;;
         esac
     done
     exit 0
@@ -261,6 +275,13 @@ SH
     [ "$link_target" = "$BINDIR/chromium" ]
 }
 
+@test "installer installs zenoty from the Raspberry Pi repo" {
+    run sh "$INSTALL_SH"
+    [ "$status" -eq 0 ]
+
+    grep -q '^zenoty=1$' "$DPkg_STATE"
+}
+
 @test "uninstall restores prior chromium-browser and chromium customizations" {
     mkdir -p "$BINDIR" "$DESTDIR/etc/chromium"
     printf 'original wrapper\n' > "$BINDIR/chromium-browser"
@@ -293,4 +314,15 @@ SH
     [ ! -e "$BINDIR/chromium-browser" ]
     [ ! -e "$DESTDIR/etc/chromium/customizations" ]
     [ ! -e "$PIVINE_STATE_DIR" ]
+}
+
+@test "uninstall removes zenoty if pivine installed it" {
+    run sh "$INSTALL_SH"
+    [ "$status" -eq 0 ]
+    grep -q '^zenoty=1$' "$DPkg_STATE"
+
+    run sh "$UNINSTALL_SH"
+    [ "$status" -eq 0 ]
+
+    grep -q '^zenoty=0$' "$DPkg_STATE"
 }

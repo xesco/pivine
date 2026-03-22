@@ -25,7 +25,7 @@ This project fills that gap for Raspberry Pi, Ubuntu aarch64, Chromium, Widevine
 `install.sh` does four main things:
 
 1. Installs the Raspberry Pi Foundation Chromium packages from `archive.raspberrypi.com/debian`.
-2. Installs `libjpeg62-turbo`, which that Chromium build expects.
+2. Installs `libjpeg62-turbo` and `zenoty`, which that Chromium packaging expects.
 3. Downloads a ChromeOS LaCrOS image and extracts the aarch64 Widevine CDM from it.
 4. Patches `libwidevinecdm.so` so it can load on Ubuntu, then wires Chromium to use it.
 

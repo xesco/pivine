@@ -31,6 +31,7 @@ Q() { [ "$VERBOSE" -eq 1 ] && "$@" || "$@" >/dev/null 2>&1; }
 : ${SCRIPT_BASE:=$(dirname "$(realpath "$0")")}
 : ${BINDIR:=/usr/bin}
 : ${PIVINE_STATE_DIR:=$STATEDIR/pivine-state}
+: ${RPI_CHROMIUM_PKG_BASE:=$RPI_CHROMIUM_REPO}
 
 STATE_META_DIR="$PIVINE_STATE_DIR/meta"
 STATE_BACKUP_DIR="$PIVINE_STATE_DIR/backups"
@@ -112,6 +113,7 @@ capture_original_state() {
     capture_package_state chromium-common chromium_common
     capture_package_state libjpeg62 libjpeg62
     capture_package_state libjpeg62-turbo libjpeg62_turbo
+    capture_package_state zenoty zenoty
 
     capture_path_state install_base "$INSTALL_BASE"
     capture_path_state widevine_link "$WIDEVINE_LINK"
@@ -214,6 +216,7 @@ get_deb_path() {
 
 CHROMIUM_DEB_PATH="$(get_deb_path chromium)"
 CHROMIUM_COMMON_DEB_PATH="$(get_deb_path chromium-common)"
+ZENOTY_DEB_PATH="$(get_deb_path zenoty)"
 
 if [ -z "$CHROMIUM_DEB_PATH" ]; then
     echo "ERROR: Could not find chromium package in RPi repo index."
@@ -222,6 +225,18 @@ fi
 
 log "  chromium: $CHROMIUM_DEB_PATH"
 log "  chromium-common: $CHROMIUM_COMMON_DEB_PATH"
+log "  zenoty: $ZENOTY_DEB_PATH"
+
+if [ -z "$ZENOTY_DEB_PATH" ]; then
+    echo "ERROR: Could not find zenoty package in RPi repo index."
+    exit 1
+fi
+
+Q curl -# -L -o "$chromium_workdir/zenoty.deb" \
+    "$RPI_CHROMIUM_PKG_BASE/$ZENOTY_DEB_PATH"
+
+echo "Installing zenoty..."
+Q dpkg -i "$chromium_workdir/zenoty.deb"
 
 # ------------------------------------------------------------------ #
 # Install libjpeg62-turbo (replaces Ubuntu's original libjpeg 6.2)
@@ -262,8 +277,8 @@ if [ -n "$CHROMIUM_COMMON_DEB_PATH" ]; then
 fi
 
 echo "Installing RPi Chromium..."
-# The only remaining unsatisfiable Debian dep is 'zenoty' (not in Ubuntu).
-# All other deps are either pre-installed above or satisfied by libjpeg62-turbo.
+# All remaining deps are either pre-installed above or satisfied by
+# libjpeg62-turbo and zenoty from the RPi repo.
 Q dpkg --force-depends -i \
     "$chromium_workdir/chromium-common.deb" \
     "$chromium_workdir/chromium.deb" || true

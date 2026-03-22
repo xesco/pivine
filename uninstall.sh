@@ -124,6 +124,7 @@ Q dpkg --remove --force-depends libjpeg62-turbo 2>/dev/null || true
 
 restore_package_state libjpeg62 libjpeg62
 restore_package_state libjpeg62-turbo libjpeg62_turbo
+restore_package_state zenoty zenoty
 restore_package_state chromium-common chromium_common
 restore_package_state chromium chromium
 
