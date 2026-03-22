@@ -34,12 +34,21 @@ It also writes a Chromium customization file under `/etc/chromium/customizations
 ## Requirements
 
 - Raspberry Pi running Ubuntu `aarch64`
-- Ubuntu on `aarch64`
 - glibc `2.35` or newer
 - `2.36+` recommended
 - root access via `sudo`
 - Chromium snap must not be installed
 - internet access for Chromium packages and the LaCrOS image download
+
+## Supported Ubuntu versions
+
+`pivine` targets Ubuntu on `aarch64`.
+
+- Minimum: Ubuntu 22.04
+- Recommended: Ubuntu 23.04 or newer
+- Older releases are not supported
+
+The real requirement here is glibc compatibility, not Ubuntu version by itself. The installer uses glibc as the practical gate: it requires glibc `2.35` or newer, and treats glibc `2.36+` as the recommended target. The Ubuntu version guidance above is just a shorthand for that requirement.
 
 ## Install
 
